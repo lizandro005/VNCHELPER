@@ -34,7 +34,7 @@ namespace WindowsFormsApp2
         public void button1_Click(object sender, EventArgs e)
         {
 
-            CheckTemperature();
+            Che
 
 
         }
@@ -62,12 +62,13 @@ namespace WindowsFormsApp2
             Output.Text = ps.StandardOutput.ReadToEnd();
         }
 
-        public void CheckTemperature()
+        public void CheckCPUTemp()
         {
-            PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            float cpuTemp = cpuCounter.NextValue();
+            // Get the temperature reported by the CPU
+            float temp = System.Convert.ToSingle(System.Diagnostics.PerformanceCounter("Processor Information", "Processor Temperature", true).NextValue());
 
-            Output.Text = "CPU Temperature = " + cpuTemp.ToString() + "Celsius";
+            // Write the temperature to the Output textbox
+            Output.Text = "CPU Temperature: " + temp.ToString() + "°C";
         }
     }
 }
