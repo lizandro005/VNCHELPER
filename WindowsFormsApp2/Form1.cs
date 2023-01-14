@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Management;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,9 +11,12 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Xml;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Security.Cryptography.X509Certificates;
+using System.IO;
 
 namespace WindowsFormsApp2
 {
+
     public partial class Form1 : Form
     {
         public Form1()
@@ -21,24 +25,53 @@ namespace WindowsFormsApp2
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            Process ps = new Process();
-            ps.StartInfo.FileName = "powershell.exe";
-            ps.StartInfo.UseShellExecute = false;
-            ps.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
-            ps.StartInfo.Arguments = "Systeminfo | Select-String KB";
-            ps.StartInfo.RedirectStandardOutput = true;
-            ps.Start();
-            Output.Text = ps.StandardOutput.ReadToEnd();
-        }
+
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
         }
+        public void button1_Click(object sender, EventArgs e)
+        {
+
+            CheckTemperature();
+
+
+        }
+
+        public void OutputDiskCUsage()
+        {
+            DriveInfo di = new DriveInfo("C:/");
+            double totalSize = di.TotalSize / 1000000000;
+            double freeSpace = di.TotalFreeSpace / 1000000000;
+            double usedSpace = totalSize - freeSpace;
+            Output.Text = "Disk C: Usage: " + usedSpace + " GB out of " + totalSize + " GB";
+        }
+
+
+
+        public void checkupdates()
+        {
+            Process ps = new Process();
+            ps.StartInfo.FileName = "powershell.exe";
+            ps.StartInfo.UseShellExecute = false;
+            ps.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            ps.StartInfo.Arguments = "Systeminfo | Select-String [01KB";
+            ps.StartInfo.RedirectStandardOutput = true;
+            ps.Start();
+            Output.Text = ps.StandardOutput.ReadToEnd();
+        }
+
+        public void CheckTemperature()
+        {
+            PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            float cpuTemp = cpuCounter.NextValue();
+
+            Output.Text = "CPU Temperature = " + cpuTemp.ToString() + "Celsius";
+        }
     }
 }
+   
 
 
 
