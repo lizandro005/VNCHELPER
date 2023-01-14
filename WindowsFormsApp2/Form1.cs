@@ -48,6 +48,7 @@ namespace WindowsFormsApp2
             ps.WindowStyle = ProcessWindowStyle.Normal;
             ps.Arguments = @"ping 8.8.8.8";
             Process.Start(ps);
+            https://kodify.net/csharp/computer-drive/drive-free-space/
             
             espaço de disco
  */ 
