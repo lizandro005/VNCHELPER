@@ -142,7 +142,7 @@ namespace WindowsFormsApp2
         }
 
         //You can call this function like this
-       // OpenProgram("C:\\Users\\gonca\\OneDrive\\Pictures\\linkedin\\program.exe");
+       // OpenProgram("C:\\Users\\gonca\\OneDrive\\Pictures\\linkedin\\program.exe"); asda
 
 
 
