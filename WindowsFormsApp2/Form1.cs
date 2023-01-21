@@ -15,12 +15,14 @@ using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using System.Security.Policy;
 
 namespace WindowsFormsApp2
 {
 
     public partial class Form1 : Form
     {
+
         public Form1()
         {
             InitializeComponent();
@@ -36,41 +38,97 @@ namespace WindowsFormsApp2
         public void button1_Click(object sender, EventArgs e)
         {
 
-            OpenProgram("C:\\Program Files (x86)\\Steam\\steam.exe");
-
-
+            OutputDiskCUsage();
+            CheckUptime();
+            CheckRamUsage();
+            CheckTemperature();
+            CheckResourceUsage();
+            RunProgramAndDeleteFile("C:\\Program Files (x86)\\VirtualDJ\\virtualdj8.exe", "C:\\Users\\Elite\\Desktop\\VNCHELPER.txt");
 
         }
 
+        class FileWriting
+        {
+            public void WriteToFile(string textToWrite)
+            {
+                try
+                {
+                    // Open the file to write to
+                    using (StreamWriter sw = File.AppendText("C:\\Users\\Elite\\Desktop\\VNCHELPER.txt"))
+                    {
+                        sw.WriteLine(textToWrite);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error writing to file: " + ex.Message);
+                }
+            }
+        
+        }
+
+
         public void OutputDiskCUsage()
         {
+            FileWriting fileWriting = new FileWriting();
             DriveInfo di = new DriveInfo("C:/");
             double totalSize = di.TotalSize / 1000000000;
             double freeSpace = di.TotalFreeSpace / 1000000000;
             double usedSpace = totalSize - freeSpace;
-            Output.Text = "Disk C: Usage: " + usedSpace + " GB out of " + totalSize + " GB";
+            string freediskspace = "\n Disk C: Usage: " + usedSpace + " GB out of " + totalSize + " GB";
+            fileWriting.WriteToFile(freediskspace);
+           
         }
 
 
             public void CheckTemperature()
         {
+            FileWriting fileWriting = new FileWriting();
             try
             {
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM MSAcpi_ThermalZoneTemperature");
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     string temp = obj["CurrentTemperature"].ToString();
-                    Output.Text = "Temperature: " + (Convert.ToInt32(temp) - 2732) + "°C";
+                    string temperature = "Temperature: " + (Convert.ToInt32(temp) - 2732) + "°C";
+                    fileWriting.WriteToFile(temperature);
                 }
             }
             catch (ManagementException)
             {
-                Output.Text = "Error: Unable to retrieve temperature data.";
+                fileWriting.WriteToFile("Error: Unable to retrieve temperature data.");
             }
         }
 
+
+       
+            public void RunProgramAndDeleteFile(string programPath, string filePath)
+            {
+                try
+                {
+                    // Start the program
+                    Process process = new Process();
+                    process.StartInfo.FileName = programPath;
+                    process.Start();
+                    process.WaitForExit();
+
+                    // Delete the file
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error running program or deleting file: " + ex.Message);
+                }
+            }
+        
+
+
         public void CheckResourceUsage()
         {
+            FileWriting fileWriting = new FileWriting();
             try
             {
                 var processes = Process.GetProcesses();
@@ -81,18 +139,19 @@ namespace WindowsFormsApp2
                         var cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount / Stopwatch.Frequency;
                         if (cpuUsage > 0.5)
                         {
-                            Output.Text = "Process: " + process.ProcessName + " is using too much CPU resources.";
+                            string resourceusage = "Process: " + process.ProcessName + " is using too much CPU resources.";
+                            fileWriting.WriteToFile(resourceusage);
                         }
                         else if (process.WorkingSet64 > 8000000)
                         { //8000000 bytes = 8mb
-                            Output.Text = "Process: " + process.ProcessName + " is using too much Memory resources.";
+                            fileWriting.WriteToFile("Process: " + process.ProcessName + " is using too much Memory resources.");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Output.Text = "Error: Unable to retrieve process data." + ex.Message;
+                fileWriting.WriteToFile ("Error: Unable to retrieve process data." + ex.Message);
             }
         }
         /* This code snippet uses the Process class in the System.Diagnostics namespace to retrieve a list of all running processes and their resource usage. It checks the total processor time consumed by each process, and if the process is consuming more than 50% of the available CPU resources, it will output the process name in the Output textbox.
@@ -101,14 +160,16 @@ namespace WindowsFormsApp2
         It also assumes that you have a textbox called Output in your form, otherwise you will need to reference the textbox by its name.*/
         public void CheckUptime()
         {
+            FileWriting fileWriting = new FileWriting();
             try
             {
                 var uptime = new TimeSpan(0, 0, 0, 0, (int)GetTickCount64());
-                Output.Text = "Uptime: " + uptime.Days + " days " + uptime.Hours + " hours " + uptime.Minutes + " minutes " + uptime.Seconds + " seconds";
+                string uptimestring = "Uptime: " + uptime.Days + " days " + uptime.Hours + " hours " + uptime.Minutes + " minutes " + uptime.Seconds + " seconds";
+                fileWriting.WriteToFile(uptimestring);
             }
             catch (Exception ex)
             {
-                Output.Text = "Error: Unable to retrieve uptime data." + ex.Message;
+               
             }
         }
 
@@ -117,29 +178,20 @@ namespace WindowsFormsApp2
 
         public void CheckRamUsage()
         {
+            FileWriting fileWriting = new FileWriting();
             try
             {
                 var performanceCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
                 var ramUsagePercentage = performanceCounter.NextValue();
-                Output.Text = "RAM Usage: " + ramUsagePercentage + "%";
+                string ramusage = "RAM Usage: " + ramUsagePercentage + "%";
+                fileWriting.WriteToFile(ramusage);
             }
             catch (Exception ex)
             {
-                Output.Text = "Error: Unable to retrieve RAM usage data." + ex.Message;
+                fileWriting.WriteToFile("Error: Unable to retrieve RAM usage data." + ex.Message);
             }
         }
-        public void OpenProgram(string directory)
-        {
-            try
-            {
-                Process.Start(directory);
-                Output.Text = "The program located in: " + directory + " was opened successfully";
-            }
-            catch (Exception ex)
-            {
-                Output.Text = "Error: Unable to open the program. " + ex.Message;
-            }
-        }
+
 
         //You can call this function like this
        // OpenProgram("C:\\Users\\gonca\\OneDrive\\Pictures\\linkedin\\program.exe"); asda
